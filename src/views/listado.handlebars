@@ -1,0 +1,25 @@
+<body>
+<div>
+    <h2>listado productos</h2>
+    <table>
+        <tbody>
+            <tr>
+                <th>codigo</th>
+                <th>precio</th>
+                <th>imagen</th>
+            </tr>        
+    {{#each product}}
+    <tr>                
+    <td>{{this.title}}</td>
+    <td>{{this.price}}</td>
+    <td>
+    <img src={{this.thumbnail}} style="width: 100px" >
+    </td>
+   </tr>
+    {{/each}}
+    </table>
+   
+</div>
+
+</body>
+
