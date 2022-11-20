@@ -1,0 +1,21 @@
+<form id = "chatForm">
+    <h2>CANAL CHAT</h2>
+
+            <label>EMAIL:</label>
+            <input type="text"  name="Email" id="email" required />
+            <label>Mensaje:</label>
+            <input type="text" name="MensajeEmit" id="mensajeEmit"/>
+            <input type="submit" value="Enviar"></input>
+ 
+    {{#each Mensajes}}                
+    <p style= "color:blue,">
+        <b>{{this.email}}</b>
+        <span style="color:brown">[{{this.fecha}}]: </span>
+        <span style="color:green">
+        <i>    
+        {{this.mensaje}}</p>
+        </i>
+        </span>
+    {{/each}}
+   
+</form>

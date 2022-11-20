@@ -1,6 +1,7 @@
 const fs = require('fs');
 
-
+const moment = require('moment');
+     
 class Productos{
     constructor(nombre){
 this.NombreArchivo = nombre;
@@ -93,7 +94,64 @@ return "NO SE ENCUENTRA PRODUCTO"
 
 
 
+class Mensajes{
+  constructor(nombre){
+this.NombreArchivo = nombre;
+  }
+
+async save(mensaje){
+  try {
+     const mensajesTotal = await this.getAll();
+     if (mensajesTotal != "EL ARCHIVO ESTA VACIO" && mensajesTotal !== [] ){
+      const ultimoID = mensajesTotal[mensajesTotal.length-1].id+1;
+      mensaje.id = ultimoID;
+      const fechaActual = moment().format('DD/MM/YYYY HH:mm:ss');
+      mensaje.fecha = fechaActual;
+    
+      mensajesTotal.push(mensaje);
+   await   fs.promises.writeFile(this.NombreArchivo,JSON.stringify(mensajesTotal,null,2));
+  }else {
+      mensaje.id = 1;
+      const fechaActual = moment().format();
+      mensaje.fecha = fechaActual;
+    
+   await   fs.promises.writeFile(this.NombreArchivo,JSON.stringify([mensaje],null,2));
+  }
+     
+
+  } catch (error) {
+      return "el mensaje no se puede grabar"
+  }
+}
+
+
+async getAll(){
+try {
+  const resultado = await fs.promises.readFile(this.NombreArchivo,"utf-8");
+if (resultado.length > 0){
+  const mensaJson = JSON.parse(resultado);
+  return mensaJson;    
+
+} else{
+  console.log("no hay mensajes");
+  return "EL ARCHIVO ESTA VACIO"
+}   
+ 
+} catch (error) {
+  const archivoNuevo=  await fs.promises.writeFile(this.NombreArchivo,"");  
+  return ""
+}
+
+  }
+
+}
+
+
+
 const producto = new Productos("Listado.txt");
+
+const listaMensajes = new Mensajes("Mensajes.txt");
+
 
 const express = require('express');
 const handlebars = require('express-handlebars');
@@ -105,6 +163,8 @@ const path = require ('path');
 const dirViews = path.join(__dirname, "views");
 
 const {Server} =require("socket.io");
+
+
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -121,13 +181,27 @@ io.on('connection', async(socket)=> {
   const productosTotal = await producto.getAll();
   socket.emit('productosAll', productosTotal);
 
-socket.on("productoNuevo",async(data) => {
+  const mensajesTotales = await listaMensajes.getAll(); 
+  socket.emit('mensajesChat', mensajesTotales);
+
+  socket.on("productoNuevo",async(data) => {
   await producto.save(data);
 
   const productosTotal = await producto.getAll();
 
   socket.emit('productosAll', productosTotal);
   })
+
+  socket.on("MensajeNuevo",async(data) => {
+    
+    await listaMensajes.save(data);
+  
+    const mensajesTotales = await listaMensajes.getAll();
+    socket.emit('mensajesChat', mensajesTotales);
+
+    })
+  
+
 }) 
 
 
@@ -153,13 +227,13 @@ app.get('/productos', async(req, res) => {
 }
 });
 
-
+/*
 app.post("/productos", async(req,res)=> {
  await producto.save(req.body);
  console.log(await producto.getAll());
 res.redirect("/");
 })
-
+*/
 ;
 
 
